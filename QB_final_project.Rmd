@@ -65,6 +65,46 @@ crawley.inv <- crawley.full[crawley.full$ Nativity.Code == "3", ]
 
 
 
+## Mackenzie's initial idea: plot percent invasive species vs. species richness
 
+```{r}
+# subset data into separate data frames for each nativity code
+nativeIN <- subset(crawley.full, Nativity.Code == "0")
+nativeUS <- subset(crawley.full, Nativity.Code == "1")
+exotic <- subset(crawley.full, Nativity.Code == "2")
+invasive <- subset(crawley.full, Nativity.Code == "3")
+unknown <- subset(crawley.full, Nativity.Code == "UNK")
+
+# sum columns to find observed species richness for each site; repeat for each nativity code
+nativeIN.sr <- colSums(nativeIN[ , 4:23])
+nativeUS.sr <- colSums(nativeUS[ , 4:23])
+exotic.sr <- colSums(exotic[ , 4:23])
+invasive.sr <- colSums(invasive[ , 4:23])
+unknown.sr <- colSums(unknown[ , 4:23])
+
+# calculate total native richness
+native.sr <- nativeIN.sr + nativeUS.sr
+
+# calculate total observed species richness
+total.sr <- colSums(crawley.full[ , 4:23])
+
+# this was a sanity check to make sure everything has worked so far
+# total.osr <- nativeIN.sr + nativeUS.sr + exotic.sr + invasive.sr + unknown.sr
+# total.sr == total.osr
+
+# plot richness of invasive species vs total species richness
+plot(invasive.sr, total.sr, ylim = range(0:70), xlim = range(0:15), 
+     xlab = "Number of Invasive Species Present", ylab = "Total Observed Species Richness")
+# add fit lines
+abline(lm(total.sr~invasive.sr), col="blue") # regression line (y~x) 
+
+# plot richness of invasive species vs total species richness
+plot(invasive.sr, native.sr, ylim = range(0:70), xlim = range(0:15), 
+     xlab = "Number of Invasive Species Present", ylab = "Observed Species Richness of Native Plants")
+# add fit lines
+abline(lm(native.sr~invasive.sr), col="blue") # regression line (y~x) 
+```
+
+> Ok, so there's a pretty clear positive trend for both graphs, which is pretty neat-- so from this data, it looks like adding invasives simply adds species, and there isn't evidence that the invasives are decreasing native or total species richness (the opposite, in fact, which is logical for the first graph but really interesting for the second graph)
 
 
