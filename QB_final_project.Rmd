@@ -1,0 +1,70 @@
+---
+title: "QB_final_project"
+author: "Lana Bolin"
+date: "2/6/2019"
+output: html_document
+---
+
+---
+title: "Bolin, Caple, and Crawley independent project (QB2019)"
+author: "Lana Bolin"
+date: "1/31/2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# Setup
+
+```{r, warning=F, message=F}
+rm(list = ls())
+getwd()
+setwd("~/GitHub/QB19_IndependentProject/")
+require("vegan")
+require("dplyr")
+require("magrittr")
+require("ggplot2")
+
+crawley.full <- read.csv("Crawley.csv")
+```
+
+
+Nativity codes are:   
+0 = native to Indiana  
+1 = native to the US  
+2 = exotic  
+3 = invasive  
+
+Check how many of each nativity code we have using dplyr
+```{r}
+crawley.full %>%
+  group_by(Nativity.Code) %>%
+  summarize(grpcount = n())
+
+# Those 8 empty ones are just empty rows at the bottom of the df. Let's get rid of those, as well as the two empty columns at the end
+crawley.full <- crawley.full[-c(293:300), -c(24, 25)]
+
+```
+
+
+# Plots
+
+## Richness vs. Invasive present / Invasive absent in community
+
+Make site-by-species matrix where nativity code is "0" for Native, "1" for Invasive/Exotic
+```{r}
+# We want to separate into two df's: one for sites that have at least one invasive, and one for sites that don't.
+
+# To do that, we make a vector of invasive species
+
+crawley.inv <- crawley.full[crawley.full$ Nativity.Code == "3", ]
+
+```
+
+#### Every site has at least one invasive, so I can't make my plot!
+
+
+
+
+
+
