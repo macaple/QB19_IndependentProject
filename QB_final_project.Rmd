@@ -108,3 +108,49 @@ abline(lm(native.sr~invasive.sr), col="blue") # regression line (y~x)
 > Ok, so there's a pretty clear positive trend for both graphs, which is pretty neat-- so from this data, it looks like adding invasives simply adds species, and there isn't evidence that the invasives are decreasing native or total species richness (the opposite, in fact, which is logical for the first graph but really interesting for the second graph)
 
 
+## Beta diversity of sites
+
+```{r}
+# loading transposed site by species matrix with nativity/planting codes removed
+sbs <- read.csv("sitebyspecies.csv", header = TRUE)
+sbs <- sbs[ , -1]
+
+## this was me trying to transpose the matrix, set the first row as column names and then giving up because the data was no longer considered numeric?
+## i'm really just keeping this in the hopes that one day i'll be able to figure it out, we don't need it, feel free to delete
+#sbs <- crawley.full[-c(293:300) ,-c(2, 3, 24, 25)]
+#sbs <- t(sbs)
+#colnames(sbs) <- sbs[1, ]
+#sbs <- sbs[-1, -c(293:300)]
+ 
+# calculated Sorenson similarity
+sbs.ds <- vegdist(sbs, method = "bray", binary = TRUE)
+sbs.ds
+
+# heat map of site similarity
+require(viridis)
+levelplot(as.matrix(sbs.ds), aspect = "iso", col.regions = magma,
+                    xlab = "GreenSpace Site", ylab = "GreenSpace Site", scales = list(cex = 0.5),
+                    main = "Sorenson Distance")
+
+
+```
+
+> Not expecting to find any patterns with site similarity honestly (and it doesn't look like there are any!), but it's cool to see that they're overall pretty dissimilar. Wonder if that changes looking only at planted species?
+
+
+
+## Planted species vs. volunteer species
+
+```{r}
+# ignore this for now, I'm just playin' 
+planted <- subset(crawley.full, Planted.or.Volunteer == "1")
+volunteer <- subset(crawley.full, Planted.or.Volunteer == "2")
+planted.SR <- colSums(planted[ , 4:23])
+volunteer.SR <- colSums(volunteer[ , 4:23])
+
+plot(planted.SR, volunteer.SR, ylim = c(0, 80), xlim = c(0, 30),
+     xlab = "Planted Species Richness",
+     ylab = "Volunteer Species Richness", las = 1)
+
+```
+
