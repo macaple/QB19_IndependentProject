@@ -98,11 +98,21 @@ plot(invasive.sr, total.sr, ylim = range(0:70), xlim = range(0:15),
 # add fit lines
 abline(lm(total.sr~invasive.sr), col="blue") # regression line (y~x) 
 
-# plot richness of invasive species vs total species richness
+# plot richness of invasive species vs native species richness
 plot(invasive.sr, native.sr, ylim = range(0:70), xlim = range(0:15), 
-     xlab = "Number of Invasive Species Present", ylab = "Observed Species Richness of Native Plants")
+     xlab = "Number of Invasive Species Present", ylab = "Number of Native Species Present", main = "Observed Richness of Native and Invasive Plants")
 # add fit lines
 abline(lm(native.sr~invasive.sr), col="blue") # regression line (y~x) 
+
+
+# plot richness of native species richness vs invasive species 
+plot(native.sr, invasive.sr, ylim = range(0:20), xlim = range(0:80), 
+     ylab = "Number of Invasive Species Present", xlab = "Number of Native Species Present", main = "Observed Richness of Native and Invasive Plants")
+# add fit lines
+abline(lm(invasive.sr~native.sr), col="blue") # regression line (y~x) 
+
+summary(lm(native.sr~invasive.sr))
+
 ```
 
 > Ok, so there's a pretty clear positive trend for both graphs, which is pretty neat-- so from this data, it looks like adding invasives simply adds species, and there isn't evidence that the invasives are decreasing native or total species richness (the opposite, in fact, which is logical for the first graph but really interesting for the second graph)
@@ -154,3 +164,14 @@ plot(planted.SR, volunteer.SR, ylim = c(0, 80), xlim = c(0, 30),
 
 ```
 
+
+
+
+
+
+
+
+Ideas for further analysis:
+-incorporate plot size
+-indicator species
+-planted species vs spontaneous species
