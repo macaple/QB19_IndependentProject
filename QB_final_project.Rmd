@@ -18,14 +18,12 @@ output:
 
 ```{r, warning=F, message=F}
 rm(list = ls())
-getwd()
-setwd("~/GitHub/QB19_IndependentProject/")
 require("vegan")
 require("dplyr")
 require("magrittr")
 require("ggplot2")
 
-crawley.full <- read.csv("Crawley.csv")
+
 ```
 
 
@@ -37,12 +35,20 @@ Nativity codes are:
 
 Check how many of each nativity code we have using dplyr
 ```{r}
+setwd("~/GitHub/QB19_IndependentProject/")
+crawley.full <- read.csv("Crawley.csv")
+
 crawley.full %>%
   group_by(Nativity.Code) %>%
   summarize(grpcount = n())
 
 # Those 8 empty ones are just empty rows at the bottom of the df. Let's get rid of those, as well as the two empty columns at the end
 crawley.full <- crawley.full[-c(293:300), -c(24, 25)]
+crawley.df <- crawley.full[, -c(1:3)]  # Get rid of non-incidence columns
+crawley.species <- crawley.full$Species  # Save species as a vector, in case we need it
+crawley <- as.matrix(t(crawley.df))  
+
+crawley.sbys <- matrix(crawley, ncol = ncol(crawley), dimnames = NULL)
 
 ```
 
@@ -215,6 +221,32 @@ adonis(sbs ~ region.SES, method = "bray", permutations = 999)
 weediness <- c(rep("Absent", 2), rep("Low", 6), rep("Medium", 10), rep("High", 2))
 adonis(sbs ~ weediness, method = "bray", permutations = 999)
 
+## Percent Invasive vs. Time Since Planting
+
+```{r}
+# Setup
+setwd("~/GitHub/QB19_IndependentProject/")
+crawley.full <- read.csv("Crawley.csv")
+crawley.site.factors <- read.csv("site_factors.csv")
+time.since.planting <- crawley.site.factors$Years.between.planting.and.census  # this is an integer, for now
+
+crawley.full %>%
+  group_by(Nativity.Code) %>%
+  summarize(grpcount = n())
+
+crawley.full <- crawley.full[-c(293:300), -c(24, 25)]
+
+# Calculate percent invasive for each site
+percent.invasive <- colSums(crawley.df) / nrow(crawley.df)
+
+
+plot(x = time.since.planting, y = percent.invasive,
+     xlab = "Years Since Planting",
+     ylab = "Percent Invasive Species in Site")
+abline(lm(percent.invasive ~ time.since.planting), col="blue")
+
+summary(lm(percent.invasive ~ time.since.planting))  # P = 0.23
+```
 # mulch
 mulch <- c(rep("None", 3), rep("Low", 6), rep("Medium", 7), rep("High", 4))
 adonis( sbs ~ mulch, method = "bray", permutations = 999)
