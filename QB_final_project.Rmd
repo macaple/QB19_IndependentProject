@@ -225,8 +225,13 @@ adonis( sbs ~ mulch, method = "bray", permutations = 999)
 ```
 
 
+```{r}
+#ignore ignore
+site.factors <- sbs.factors[ ,2:4]
+sbs.dbrda <- dbrda(sbs.ds ~ ., as.data.frame(site.factors))
+ordiplot(sbs.dbrda)
 
-
+```
 
 Ideas for further analysis:
 -incorporate plot size
