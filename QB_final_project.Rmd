@@ -128,8 +128,8 @@ summary(lm(native.sr~invasive.sr))
 
 ```{r}
 # loading transposed site by species matrix with nativity/planting codes removed
-sbs <- read.csv("sitebyspecies.csv", header = TRUE)
-sbs <- sbs[ , -1]
+sbs.factors <- read.csv("sbs_factors.csv", header = TRUE)
+sbs <- sbs.factors[ , -c(1:4)]
 
 ## this was me trying to transpose the matrix, set the first row as column names and then giving up because the data was no longer considered numeric?
 ## i'm really just keeping this in the hopes that one day i'll be able to figure it out, we don't need it, feel free to delete
@@ -138,22 +138,34 @@ sbs <- sbs[ , -1]
 #colnames(sbs) <- sbs[1, ]
 #sbs <- sbs[-1, -c(293:300)]
  
+
+# sorted data by site factors
+mulch.sbs <- sbs.factors[order(sbs.factors$MULCH),]
+litter.sbs <- sbs.factors[order(sbs.factors$LITTER),]
+weediness.sbs <- sbs.factors[order(sbs.factors$WEEDINESS),]
+
 # calculated Sorenson similarity
-sbs.ds <- vegdist(sbs, method = "bray", binary = TRUE)
-sbs.ds
+msbs.ds <- vegdist(mulch.sbs[ , -c(1:4)], method = "bray", binary = TRUE)
+lsbs.ds <- vegdist(litter.sbs[ , -c(1:4)], method = "bray", binary = TRUE)
+wsbs.ds <- vegdist(weediness.sbs[ , -c(1:4)], method = "bray", binary = TRUE)
 
-# heat map of site similarity
+
+# heat maps of site similarity
 require(viridis)
-levelplot(as.matrix(sbs.ds), aspect = "iso", col.regions = magma,
-                    xlab = "GreenSpace Site", ylab = "GreenSpace Site", scales = list(cex = 0.5),
+levelplot(as.matrix(msbs.ds), aspect = "iso", col.regions = magma,
+                    xlab = "GreenSpace Site (Sort: Mulch Abundance)", ylab = "GreenSpace Site (Sort: Mulch Abundance)", scales = list(cex = 0.5),
                     main = "Sorenson Distance")
-
+levelplot(as.matrix(lsbs.ds), aspect = "iso", col.regions = magma,
+                    xlab = "GreenSpace Site (Sort: Litter Abundance)", ylab = "GreenSpace Site (Sort: Litter Abundance)", scales = list(cex = 0.5),
+                    main = "Sorenson Distance")
+levelplot(as.matrix(wsbs.ds), aspect = "iso", col.regions = magma,
+                    xlab = "GreenSpace Site (Sort: Weediness Index)", ylab = "GreenSpace Site (Sort: Weediness Index)", scales = list(cex = 0.5),
+                    main = "Sorenson Distance")
 
 ```
 
 > Not expecting to find any patterns with site similarity honestly (and it doesn't look like there are any!), but it's cool to see that they're overall pretty dissimilar. Wonder if that changes looking only at planted species?
-
-
+>Not sure if the labels help, but the heat maps just differ based on the sorting of the dataset; the values are ascending, so right to left and down to up is least mulch/litter/weeds to most.
 
 ## Planted species vs. volunteer species
 
@@ -174,40 +186,40 @@ plot(planted.SR, volunteer.SR, ylim = c(0, 80), xlim = c(0, 30),
 ## PERMANOVA using site types and locations 
 
 ```{r}
-# setwd("/Users/wolve/GitHub/QB19_IndependentProject")
-PGS.data <- read.csv("sitebyspecies.csv", header = TRUE)
-PGS.data <- PGS.data[ , -1]
-
-PGS.ds <- vegdist(PGS.data, method = "bray", binary = TRUE) 
-PGS.pcoa <- cmdscale(PGS.ds, eig = TRUE, k = 3)
-explainvar1.PGS <- round(PGS.pcoa$eig[1] / sum (PGS.pcoa$eig), 3) * 100
-explainvar2.PGS <- round(PGS.pcoa$eig[2] / sum (PGS.pcoa$eig), 3) * 100
-explainvar3.PGS <- round(PGS.pcoa$eig[3] / sum (PGS.pcoa$eig), 3) * 100
-sum.eigPGS <- sum(explainvar1.PGS, explainvar2.PGS, explainvar3.PGS)
-sum.eigPGS
+sbs.ds <- vegdist(sbs, method = "bray", binary = TRUE) 
+sbs.pcoa <- cmdscale(sbs.ds, eig = TRUE, k = 3)
+explainvar1.sbs <- round(sbs.pcoa$eig[1] / sum (sbs.pcoa$eig), 3) * 100
+explainvar2.sbs <- round(sbs.pcoa$eig[2] / sum (sbs.pcoa$eig), 3) * 100
+explainvar3.sbs <- round(sbs.pcoa$eig[3] / sum (sbs.pcoa$eig), 3) * 100
+sum.eigsbs <- sum(explainvar1.sbs, explainvar2.sbs, explainvar3.sbs)
+sum.eigsbs
 
 par(mar = c(5, 5, 1, 2) + 0.1) 
-plot(PGS.pcoa$points[, 1], PGS.pcoa$points[, 2],
+plot(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2],
      ylim = c(-0.2, 0.7),
-     xlab = paste("PCoA 1 (", explainvar1.PGS, "%)", sep = ""),
-     ylab = paste("PCoA 2 (", explainvar2.PGS, "%)", sep = ""),
+     xlab = paste("PCoA 1 (", explainvar1.sbs, "%)", sep = ""),
+     ylab = paste("PCoA 2 (", explainvar2.sbs, "%)", sep = ""),
      pch = 16, cex = 2, type = "n", cex.lab = 1.5, cex.axis = 1.2, axes = FALSE)
 axis(side = 1, labels = T, lwd.ticks = 2, cex.axis = 1.2, las = 1) 
 axis(side = 2, labels = T, lwd.ticks = 2, cex.axis = 1.2, las = 1) 
 abline(h = 0, v = 0, lty = 3)
 box(lwd = 2)
-points(PGS.pcoa$points[, 1], PGS.pcoa$points[, 2], 
+points(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2], 
     pch = 19, cex = 3, bg = "gray", col = "gray")
-text(PGS.pcoa$points[, 1], PGS.pcoa$points[, 2], 
-    labels = rownames(PGS.data))
-  
+text(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2], 
+    labels = rownames(sbs))
+
+# site type (i.e. school, residential, etc.)
 site.type <- c(rep("Business", 1), rep ("Residential", 1), rep("School", 1), rep("Residential", 1), rep("Business", 1), rep("Other", 1), rep ("Business", 1), rep("Other", 2), rep("Residential", 1), rep("School", 2), rep ("Business", 1), rep("School", 1), rep("Residential", 2), rep("School", 1), rep("Other", 1), rep("Business", 1), rep("Residential", 1))
-adonis(PGS.data ~ site.type, method = "bray", permutations = 999)
+adonis(sbs ~ site.type, method = "bray", permutations = 999)
 
+# median income classification
 region.SES <- c(rep("Mid", 1), rep("Low", 1), rep("Mid", 1), rep("Low", 2), rep("Mid", 1), rep("Low", 1), rep("Upper", 1),  rep("Low", 2), rep("Mid", 2), rep("Upper", 1), rep("Low", 3), rep("Upper", 1), rep("Mid", 1), rep("Low", 1), rep("Mid", 1)) 
-adonis(PGS.data ~ region.SES, method = "bray", permutations = 999)
+adonis(sbs ~ region.SES, method = "bray", permutations = 999)
 
-```
+# weediness
+weediness <- c(rep("Absent", 2), rep("Low", 6), rep("Medium", 10), rep("High", 2))
+adonis(sbs ~ weediness, method = "bray", permutations = 999)
 
 ## Percent Invasive vs. Time Since Planting
 
@@ -235,8 +247,14 @@ abline(lm(percent.invasive ~ time.since.planting), col="blue")
 
 summary(lm(percent.invasive ~ time.since.planting))  # P = 0.23
 ```
+# mulch
+mulch <- c(rep("None", 3), rep("Low", 6), rep("Medium", 7), rep("High", 4))
+adonis( sbs ~ mulch, method = "bray", permutations = 999)
 
+# didn't do litter- realized that only two sites had any litter at all. Explains why the heat map looks so homogenous! 
+# also neither of the PERMANOVAs were significant
 
+```
 
 
 
@@ -245,4 +263,4 @@ summary(lm(percent.invasive ~ time.since.planting))  # P = 0.23
 Ideas for further analysis:
 -incorporate plot size
 -indicator species
--planted species vs spontaneous species
+-planted species vs volunteer species
