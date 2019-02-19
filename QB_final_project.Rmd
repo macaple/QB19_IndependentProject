@@ -222,6 +222,9 @@ weediness <- c(rep("Absent", 2), rep("Low", 6), rep("Medium", 10), rep("High", 2
 adonis(sbs ~ weediness, method = "bray", permutations = 999)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> upstream/master
 ## Percent Invasive vs. Time Since Planting
 
 ```{r}
@@ -248,6 +251,12 @@ abline(lm(percent.invasive ~ time.since.planting), col="blue")
 
 summary(lm(percent.invasive ~ time.since.planting))  # P = 0.23
 ```
+<<<<<<< HEAD
+=======
+# mulch
+mulch <- c(rep("None", 3), rep("Low", 6), rep("Medium", 7), rep("High", 4))
+adonis( sbs ~ mulch, method = "bray", permutations = 999)
+>>>>>>> upstream/master
 =======
 # mulch
 mulch <- c(rep("None", 3), rep("Low", 6), rep("Medium", 7), rep("High", 4))
@@ -260,8 +269,13 @@ adonis( sbs ~ mulch, method = "bray", permutations = 999)
 ```
 
 
+```{r}
+#ignore ignore
+site.factors <- sbs.factors[ ,2:4]
+sbs.dbrda <- dbrda(sbs.ds ~ ., as.data.frame(site.factors))
+ordiplot(sbs.dbrda)
 
-
+```
 
 Ideas for further analysis:
 -incorporate plot size
