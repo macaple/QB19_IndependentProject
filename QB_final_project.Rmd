@@ -222,6 +222,7 @@ weediness <- c(rep("Absent", 2), rep("Low", 6), rep("Medium", 10), rep("High", 2
 adonis(sbs ~ weediness, method = "bray", permutations = 999)
 
 ## Percent Invasive vs. Time Since Planting
+```
 
 ```{r}
 # Setup
@@ -247,6 +248,8 @@ abline(lm(percent.invasive ~ time.since.planting), col="blue")
 
 summary(lm(percent.invasive ~ time.since.planting))  # P = 0.23
 ```
+
+```{r}
 # mulch
 mulch <- c(rep("None", 3), rep("Low", 6), rep("Medium", 7), rep("High", 4))
 adonis( sbs ~ mulch, method = "bray", permutations = 999)
@@ -256,7 +259,6 @@ adonis( sbs ~ mulch, method = "bray", permutations = 999)
 
 ```
 
-
 ```{r}
 #ignore ignore
 site.factors <- sbs.factors[ ,2:4]
@@ -264,6 +266,48 @@ sbs.dbrda <- dbrda(sbs.ds ~ ., as.data.frame(site.factors))
 ordiplot(sbs.dbrda)
 
 ```
+
+
+Indicator species
+```{r}
+require(indicspecies)
+
+# test hypothesis: there are relatively few species driving community differences
+
+# transpose data to create a site-by-species matrix
+sbs <- t(crawley.full[ , 4:23])
+sbs <- as.data.frame(sbs)
+colnames(sbs) <- crawley.full[ , 1]
+
+# create "factors" vector
+richness <- rowSums(sbs)
+
+levels <- function(x){
+  if(x <= 45){
+    return("L")
+  } else if(x > 45 & x <= 70){
+    return("M")
+  } else{
+    return("H")
+  }
+}
+
+richness.level <- sapply(richness, levels)
+
+
+# run PERMANOVA with adonis function
+adonis(sbs ~ richness.level, method = "bray", permutations = 999)
+
+# identify indicator species
+indval <- multipatt(sbs, cluster = richness.level, func = "IndVal.g", control = how(nperm = 999))
+summary(indval)
+
+# calculate phi coefficient of association to examine habitat preference
+sbs.rel <- decostand(sbs, method = "total")
+phi <- multipatt(sbs, cluster = richness.level, func = "r.g", control = how(nperm = 999))
+summary(phi)
+```
+
 
 Ideas for further analysis:
 -incorporate plot size
