@@ -18,11 +18,14 @@ output:
 
 ```{r, warning=F, message=F}
 rm(list = ls())
-require("vegan")
-require("dplyr")
-require("magrittr")
-require("ggplot2")
 
+package.list <- c('vegan', 'dplyr', 'magrittr', 'ggplot2', 'BiodiversityR', 'indicspecies')
+for(package in package.list){
+  if(!require(package, character.only = TRUE, quietly = TRUE)){
+    install.packages(package)
+    library(package, character.only = TRUE)
+  }
+}
 
 ```
 
@@ -209,6 +212,11 @@ points(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2],
 text(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2], 
     labels = rownames(sbs))
 
+# add species labels to PCoA
+sbs.pcoa <- add.spec.scores(sbs.pcoa, sbs, method = "pcoa.scores")
+text(sbs.pcoa$cproj[ , 1], sbs.pcoa$cproj[ , 2],
+     labels = row.names(sbs.pcoa$cproj), col = "black")
+
 # site type (i.e. school, residential, etc.)
 site.type <- c(rep("Business", 1), rep ("Residential", 1), rep("School", 1), rep("Residential", 1), rep("Business", 1), rep("Other", 1), rep ("Business", 1), rep("Other", 2), rep("Residential", 1), rep("School", 2), rep ("Business", 1), rep("School", 1), rep("Residential", 2), rep("School", 1), rep("Other", 1), rep("Business", 1), rep("Residential", 1))
 adonis(sbs ~ site.type, method = "bray", permutations = 999)
@@ -221,10 +229,10 @@ adonis(sbs ~ region.SES, method = "bray", permutations = 999)
 weediness <- c(rep("Absent", 2), rep("Low", 6), rep("Medium", 10), rep("High", 2))
 adonis(sbs ~ weediness, method = "bray", permutations = 999)
 
-## Percent Invasive vs. Time Since Planting
 ```
 
 ```{r}
+## Percent Invasive vs. Time Since Planting
 # Setup
 setwd("~/GitHub/QB19_IndependentProject/")
 crawley.full <- read.csv("Crawley.csv")
@@ -270,8 +278,6 @@ ordiplot(sbs.dbrda)
 
 Indicator species
 ```{r}
-require(indicspecies)
-
 # test hypothesis: there are relatively few species driving community differences
 
 # transpose data to create a site-by-species matrix
