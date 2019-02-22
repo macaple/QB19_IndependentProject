@@ -197,25 +197,25 @@ explainvar3.sbs <- round(sbs.pcoa$eig[3] / sum (sbs.pcoa$eig), 3) * 100
 sum.eigsbs <- sum(explainvar1.sbs, explainvar2.sbs, explainvar3.sbs)
 sum.eigsbs
 
-par(mar = c(5, 5, 1, 2) + 0.1) 
+par(mar = c(4, 4, 1, 1) + 0.1) 
 plot(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2],
-     ylim = c(-0.2, 0.7),
+     ylim = c(-1, 1), xlim = c(-1, 1),
      xlab = paste("PCoA 1 (", explainvar1.sbs, "%)", sep = ""),
      ylab = paste("PCoA 2 (", explainvar2.sbs, "%)", sep = ""),
-     pch = 16, cex = 2, type = "n", cex.lab = 1.5, cex.axis = 1.2, axes = FALSE)
-axis(side = 1, labels = T, lwd.ticks = 2, cex.axis = 1.2, las = 1) 
-axis(side = 2, labels = T, lwd.ticks = 2, cex.axis = 1.2, las = 1) 
+     pch = 16, cex = 0.8, type = "n", cex.lab = 0.8, cex.axis = 0.8, axes = FALSE)
+axis(side = 1, labels = T, lwd.ticks = 2, cex.axis = 0.8, las = 1) 
+axis(side = 2, labels = T, lwd.ticks = 2, cex.axis = 0.8, las = 1) 
 abline(h = 0, v = 0, lty = 3)
 box(lwd = 2)
 points(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2], 
-    pch = 19, cex = 3, bg = "gray", col = "gray")
-text(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2], 
+    pch = 19, cex = 2, bg = "gray", col = "gray")
+text(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2], cex = 0.8,
     labels = rownames(sbs))
 
 # add species labels to PCoA
 sbs.pcoa <- add.spec.scores(sbs.pcoa, sbs, method = "pcoa.scores")
-text(sbs.pcoa$cproj[ , 1], sbs.pcoa$cproj[ , 2],
-     labels = row.names(sbs.pcoa$cproj), col = "black")
+text(sbs.pcoa$cproj[ , 1], sbs.pcoa$cproj[ , 2], cex = 0.5,
+     labels = row.names(sbs.pcoa$cproj), col = "blue")
 
 # site type (i.e. school, residential, etc.)
 site.type <- c(rep("Business", 1), rep ("Residential", 1), rep("School", 1), rep("Residential", 1), rep("Business", 1), rep("Other", 1), rep ("Business", 1), rep("Other", 2), rep("Residential", 1), rep("School", 2), rep ("Business", 1), rep("School", 1), rep("Residential", 2), rep("School", 1), rep("Other", 1), rep("Business", 1), rep("Residential", 1))
@@ -313,6 +313,7 @@ sbs.rel <- decostand(sbs, method = "total")
 phi <- multipatt(sbs, cluster = richness.level, func = "r.g", control = how(nperm = 999))
 summary(phi)
 ```
+
 
 
 Ideas for further analysis:
