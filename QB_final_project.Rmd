@@ -265,6 +265,12 @@ site.factors <- sbs.factors[ ,2:4]
 sbs.dbrda <- dbrda(sbs.ds ~ ., as.data.frame(site.factors))
 ordiplot(sbs.dbrda)
 
+#changed site.factors to character data... drbda won't run anymmore? sitefactors reads as three vectors, while site.factors reads as 20 rows of three columns
+sitefactors <- as.character(site.factors)
+as.data.frame(sitefactors)
+sbs.dbrda <- dbrda(sbs.ds ~ ., as.data.frame(sitefactors))
+ordiplot(sbs.dbrda)
+
 permutest(sbs.dbrda, permutations = 999)
 envfit(sbs.dbrda, site.factors, perm = 999)
 
