@@ -272,11 +272,17 @@ adonis( sbs ~ mulch, method = "bray", permutations = 999)
 ```
 
 ```{r}
-#ignore ignore
+#dbrda plot with site factors
 site.factors <- sbs.factors[ ,2:4]
 sbs.dbrda <- dbrda(sbs.ds ~ ., as.data.frame(site.factors))
 ordiplot(sbs.dbrda)
 
+permutest(sbs.dbrda, permutations = 999)
+envfit(sbs.dbrda, site.factors, perm = 999)
+
+#mantel test? not sure if done right.
+sitefact.ds <- vegdist(site.factors, method = "euclidean")
+mantel(sbs.ds,sitefact.ds)
 ```
 
 
