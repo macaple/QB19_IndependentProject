@@ -269,19 +269,42 @@ abline(lm(percent.invasive ~ time.since.planting), col="blue")
 summary(lm(percent.invasive ~ time.since.planting))  # P = 0.23
 ```
 
-## Percent volunteer per site vector
+## Percent volunteer per site indicator species
 ```{r}
 # Change volunteer species to be coded as "0"
 crawley.full$Planted.or.Volunteer[crawley.full$Planted.or.Volunteer == "2"] <- 0
 Planted.or.Volunteer <- crawley.full$Planted.or.Volunteer
-
 # Volunteer species only
 crawley.volunteer <- crawley.full[crawley.full$Planted.or.Volunteer == "0", ]
-
 # Remove non-incidence columns
 crawley.volunteer.sbs <- crawley.volunteer[, -c(1:3)]
 
 percent.volunteer <- colSums(crawley.volunteer.sbs) / nrow(crawley.volunteer.sbs)
+
+levels <- function(x){
+  if(x <= 45){
+    return("L")
+  } else if(x > 45 & x <= 70){
+    return("M")
+  } else{
+    return("H")
+  }
+}
+
+# make qualitative
+richness.level <- sapply(richness, levels)
+
+# run PERMANOVA with adonis function
+adonis(sbs.ns ~ richness, method = "bray", permutations = 999)
+
+# identify indicator species
+indval <- multipatt(sbs.ns, cluster = richness.level, func = "IndVal.g", control = how(nperm = 999))
+summary(indval)
+
+# calculate phi coefficient of association to examine habitat preference
+sbs.rel <- decostand(sbs.ns, method = "total")
+phi <- multipatt(sbs, cluster = richness.level, func = "r.g", control = how(nperm = 999))
+summary(phi)
 ```
 
 
