@@ -339,7 +339,6 @@ sbs.ns <- t(cf.ns[ , 4:23])
 sbs.ns <- as.data.frame(sbs.ns)
 colnames(sbs.ns) <- cf.ns[ , 1]
 
-
 # perform PCoA
 sbs.ds <- vegdist(sbs.ns, method = "bray", binary = TRUE) 
 sbs.pcoa <- cmdscale(sbs.ds, eig = TRUE, k = 3)
@@ -347,8 +346,9 @@ explainvar1.sbs <- round(sbs.pcoa$eig[1] / sum (sbs.pcoa$eig), 3) * 100
 explainvar2.sbs <- round(sbs.pcoa$eig[2] / sum (sbs.pcoa$eig), 3) * 100
 explainvar3.sbs <- round(sbs.pcoa$eig[3] / sum (sbs.pcoa$eig), 3) * 100
 sum.eigsbs <- sum(explainvar1.sbs, explainvar2.sbs, explainvar3.sbs)
+```
 
-
+```{r}
 # plot
 par(mar = c(4, 4, 1, 1) + 0.1) 
 plot(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2],
@@ -369,21 +369,39 @@ text(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2], cex = 0.6,
 # add species labels to PCoA (I had to separate them manually, not sure how to do it better)
 sbs.pcoa <- add.spec.scores(sbs.pcoa, sbs.ns, method = "pcoa.scores")
 # native species (IN or US)
-text(sbs.pcoa$cproj[1:84 , 1], sbs.pcoa$cproj[1:84 , 2], cex = 0.4,
-     labels = row.names(sbs.pcoa$cproj[1:84, ]), 
-     col = "darkgreen")
+points(sbs.pcoa$cproj[1:84, 1], sbs.pcoa$cproj[1:84, 2], 
+       pch = 21, cex = 0.6, bg = "green3", col = "green4")
+#text(sbs.pcoa$cproj[1:84, 1], sbs.pcoa$cproj[1:84, 2], cex = 0.4,
+#     labels = row.names(sbs.pcoa$cproj[1:84, ]), 
+#     col = "darkgreen")
 # exotic species
-text(sbs.pcoa$cproj[85:120 , 1], sbs.pcoa$cproj[85:120 , 2], cex = 0.4,
-     labels = row.names(sbs.pcoa$cproj[85:120 , ]), 
-     col = "purple")
+points(sbs.pcoa$cproj[85:120, 1], sbs.pcoa$cproj[85:120, 2], 
+       pch = 21, cex = 0.6, bg = "darkorchid1", col = "darkorchid4")
+#text(sbs.pcoa$cproj[85:120, 1], sbs.pcoa$cproj[85:120, 2], cex = 0.4,
+#     labels = row.names(sbs.pcoa$cproj[85:120, ]), 
+#     col = "purple")
 # invasive species
-text(sbs.pcoa$cproj[121:135 , 1], sbs.pcoa$cproj[121:135 , 2], cex = 0.4,
-     labels = row.names(sbs.pcoa$cproj[121:135, ]), 
-     col = "red")
+points(sbs.pcoa$cproj[121:135, 1], sbs.pcoa$cproj[121:135, 2], 
+       pch = 21, cex = 0.6, bg = "red1", col = "red3")
+#text(sbs.pcoa$cproj[121:135, 1], sbs.pcoa$cproj[121:135, 2], cex = 0.4,
+#     labels = row.names(sbs.pcoa$cproj[121:135, ]), 
+#     col = "red")
 # unknown nativity status species
-text(sbs.pcoa$cproj[135:143 , 1], sbs.pcoa$cproj[135:143 , 2], cex = 0.4,
-     labels = row.names(sbs.pcoa$cproj[135:143, ]), 
-     col = "blue")
+points(sbs.pcoa$cproj[135:143, 1], sbs.pcoa$cproj[135:143, 2], 
+       pch = 21, cex = 0.6, bg = "deepskyblue", col = "blue3")
+#text(sbs.pcoa$cproj[135:143, 1], sbs.pcoa$cproj[135:143, 2], cex = 0.4,
+#     labels = row.names(sbs.pcoa$cproj[135:143, ]), 
+#     col = "blue")
+
+# indicator species: medium richness sites
+text(sbs.pcoa$cproj[c(66, 15), 1], sbs.pcoa$cproj[c(66, 15), 2], cex = 0.7,
+     labels = row.names(sbs.pcoa$cproj[c(66, 15), ]),
+     col = "orange")
+# indicator species: medium/high richness sites
+text(sbs.pcoa$cproj[c(118, 19, 143), 1], sbs.pcoa$cproj[c(118, 19, 143), 2], cex = 0.7,
+     labels = row.names(sbs.pcoa$cproj[c(118, 19, 143), ]),
+     col = "red")
+
 ```
 
 Indicator species, removing species that appear in one or zero sites
