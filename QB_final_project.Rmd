@@ -49,7 +49,6 @@ crawley.species <- crawley.full$Species  # Save species as a vector, in case we 
 crawley <- as.matrix(t(crawley.df))  
 
 crawley.sbys <- matrix(crawley, ncol = ncol(crawley), dimnames = NULL)
-
 ```
 
 
@@ -221,10 +220,10 @@ adonis(sbs ~ region.SES, method = "bray", permutations = 999)
 weediness <- c(rep("Absent", 2), rep("Low", 6), rep("Medium", 10), rep("High", 2))
 adonis(sbs ~ weediness, method = "bray", permutations = 999)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> upstream/master
+
+
+```
+
 ## Percent Invasive vs. Time Since Planting
 
 ```{r}
@@ -251,7 +250,94 @@ abline(lm(percent.invasive ~ time.since.planting), col="blue")
 
 summary(lm(percent.invasive ~ time.since.planting))  # P = 0.23
 ```
-<<<<<<< HEAD
+
+## Percent volunteer per site vector
+```{r}
+# Change volunteer species to be coded as "0"
+crawley.full$Planted.or.Volunteer[crawley.full$Planted.or.Volunteer == "2"] <- 0
+Planted.or.Volunteer <- crawley.full$Planted.or.Volunteer
+
+# Volunteer species only
+crawley.volunteer <- crawley.full[crawley.full$Planted.or.Volunteer == "0", ]
+
+# Remove non-incidence columns
+crawley.volunteer.sbs <- crawley.volunteer[, -c(1:3)]
+
+percent.volunteer <- colSums(crawley.volunteer.sbs) / nrow(crawley.volunteer.sbs)
+```
+
+
+## Invasive species colonization by year
+
+```{r}
+# Setup
+setwd("~/GitHub/QB19_IndependentProject/")
+crawley.full <- read.csv("Crawley.csv")
+crawley.site.factors <- read.csv("site_factors.csv")
+time.since.planting <- crawley.site.factors$Years.between.planting.and.census  # this is an integer, for now
+crawley.df <- crawley.full[, -c(1:3)]  # Get rid of non-incidence columns
+
+crawley.full %>%
+  group_by(Nativity.Code) %>%
+  summarize(grpcount = n())
+
+crawley.full <- crawley.full[-c(293:300), -c(24, 25)]
+
+sites <- c("Athenaeum", "Bauman.Park", "Center.for.Inquiry", "Chinqpin.Oak.Park", 
+"Community.Caring...Sharing", "Cottage.Home", "Englewood", "Fletcher.Gateway", 
+"Fletcher.Park", "Historic.Meridian.Park", "Jonathan.Jennings", 
+"Lynhurst", "Merrill.Street", "Paramount.Charter", "Purpose.Park", 
+"Ransom.Place", "Skiles.Test", "University.Park", "Westminster", 
+"Willard.Park")
+
+# number of invasive species per site
+crawley.invasives <- crawley.full[crawley.full$Nativity.Code == "3", ]
+n.invasives <- colSums(crawley.invasives[, 4:ncol(crawley.invasives)])
+
+# make df
+df <- data.frame(site = sites, n.inv = n.invasives)
+
+crawley.invasives %>%
+  select(-c(2:3)) %>%
+  group_by(sites)
+  summarize(species = )
+  
+# Get list of invasive species in each site
+for (i in 4:ncol(crawley.invasives)) {
+  species <- crawley.invasives[crawley.invasives[, i] == 1, ]$Species
+  site <- colnames(crawley.invasives)[i] 
+  print(data.frame(site, species))
+}
+
+```
+
+M. alba is at 16/20 sites. That's the most common invasive.
+
+2  
+Athenaeum: A. altissima, M. alba 
+  
+3    
+Ransom.Place: A. altissima, M. alba, C. arvensis    
+  
+4  
+Center.for.Inquiry: A. altissima, M. alba, A. vulgaris, C. orbiculatus  
+Englewood: M. alba, E. fortunei, F. arundicaceae, G. hederaceae  
+Fletcher.Gateway:  C. arvense, D. carota, P. callerya, T. arvensis  
+Westminster: A. altissima, C. arvense, C. arvensis, F. arundicaceae  
+Willard.Park: A. altissima, M. alba, C. arvense, T. arvensis  
+
+Lana's plots 
+```{r}
+# Richness by Mulch treatment
+mulch <- c(rep("None", 3), rep("Low", 6), rep("Medium", 7), rep("High", 4))
+
+
+# Richness by Weediness treatment
+```
+
+
+
+
 =======
 # mulch
 mulch <- c(rep("None", 3), rep("Low", 6), rep("Medium", 7), rep("High", 4))
