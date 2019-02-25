@@ -281,7 +281,7 @@ crawley.volunteer <- crawley.full[crawley.full$Planted.or.Volunteer == "0", ]
 # Remove non-incidence columns
 crawley.volunteer.sbs <- crawley.volunteer[, -c(1:3)]
 
-percent.volunteer <- colSums(crawley.volunteer.sbs) / nrow(crawley.volunteer.sbs)
+percent.volunteer <- colSums(crawley.volunteer.sbs) / colSums(crawley.full[, -c(1:3)])
 ```
 
 
