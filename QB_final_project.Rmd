@@ -38,7 +38,7 @@ Nativity codes are:
 
 Check how many of each nativity code we have using dplyr
 ```{r}
-setwd("~/GitHub/QB19_IndependentProject/")
+#setwd("~/GitHub/QB19_IndependentProject/")
 crawley.full <- read.csv("Crawley.csv")
 
 crawley.full %>%
@@ -132,15 +132,7 @@ summary(lm(native.sr~invasive.sr))
 ```{r}
 # loading transposed site by species matrix with nativity/planting codes removed
 sbs.factors <- read.csv("sbs_factors.csv", header = TRUE)
-sbs <- sbs.factors[ , -c(1:4)]
-
-## this was me trying to transpose the matrix, set the first row as column names and then giving up because the data was no longer considered numeric?
-## i'm really just keeping this in the hopes that one day i'll be able to figure it out, we don't need it, feel free to delete
-#sbs <- crawley.full[-c(293:300) ,-c(2, 3, 24, 25)]
-#sbs <- t(sbs)
-#colnames(sbs) <- sbs[1, ]
-#sbs <- sbs[-1, -c(293:300)]
- 
+sbs <- sbs.factors[ , -c(1:7)]
 
 # sorted data by site factors
 mulch.sbs <- sbs.factors[order(sbs.factors$MULCH),]
@@ -148,9 +140,9 @@ litter.sbs <- sbs.factors[order(sbs.factors$LITTER),]
 weediness.sbs <- sbs.factors[order(sbs.factors$WEEDINESS),]
 
 # calculated Sorenson similarity
-msbs.ds <- vegdist(mulch.sbs[ , -c(1:4)], method = "bray", binary = TRUE)
-lsbs.ds <- vegdist(litter.sbs[ , -c(1:4)], method = "bray", binary = TRUE)
-wsbs.ds <- vegdist(weediness.sbs[ , -c(1:4)], method = "bray", binary = TRUE)
+msbs.ds <- vegdist(mulch.sbs[ , -c(1:7)], method = "bray", binary = TRUE)
+lsbs.ds <- vegdist(litter.sbs[ , -c(1:7)], method = "bray", binary = TRUE)
+wsbs.ds <- vegdist(weediness.sbs[ , -c(1:7)], method = "bray", binary = TRUE)
 
 
 # heat maps of site similarity
@@ -173,7 +165,7 @@ levelplot(as.matrix(wsbs.ds), aspect = "iso", col.regions = magma,
 ## Planted species vs. volunteer species
 
 ```{r}
-# ignore this for now, I'm just playin' 
+# subset initially planted vs volunteer species 
 planted <- subset(crawley.full, Planted.or.Volunteer == "1")
 volunteer <- subset(crawley.full, Planted.or.Volunteer == "2")
 planted.SR <- colSums(planted[ , 4:23])
@@ -182,6 +174,22 @@ volunteer.SR <- colSums(volunteer[ , 4:23])
 plot(planted.SR, volunteer.SR, ylim = c(0, 80), xlim = c(0, 30),
      xlab = "Planted Species Richness",
      ylab = "Volunteer Species Richness", las = 1)
+abline(lm(volunteer.SR~planted.SR), col="blue")
+
+
+# What about planted v volunteer in low mulch sites? Native v invasive?
+# rationale: low mulch as a measure of open niche space (high mulch = lots of open space?)
+#lowmulch <- subset(sbs.factors, MULCH %in% c("0", "1"))
+nativeLM <- nativeIN[ , c(9, 10, 12, 13, 14, 15, 16, 20, 23)]
+invasiveLM <- invasive[ , c(9, 10, 12, 13, 14, 15, 16, 20, 23)]
+nativeLM.SR <- colSums(nativeLM)
+invasiveLM.SR <- colSums(invasiveLM)
+
+plot(nativeLM.SR, invasiveLM.SR, ylim = c(0, 20), xlim = c(0, 30),
+     xlab = "Native Species Richness",
+     ylab = "Invasive Species Richness", las = 1)
+abline(lm(invasiveLM.SR~nativeLM.SR), col="blue")
+summary(lm(invasiveLM.SR~nativeLM.SR))
 
 ```
 
@@ -229,6 +237,12 @@ adonis(sbs ~ region.SES, method = "bray", permutations = 999)
 weediness <- c(rep("Absent", 2), rep("Low", 6), rep("Medium", 10), rep("High", 2))
 adonis(sbs ~ weediness, method = "bray", permutations = 999)
 
+# mulch
+mulch <- c(rep("None", 3), rep("Low", 6), rep("Medium", 7), rep("High", 4))
+adonis( sbs ~ mulch, method = "bray", permutations = 999)
+
+# didn't do litter- realized that only two sites had any litter at all. Explains why the heat map looks so homogenous! 
+# also neither of the PERMANOVAs were significant
 ```
 
 ```{r}
@@ -257,24 +271,19 @@ abline(lm(percent.invasive ~ time.since.planting), col="blue")
 summary(lm(percent.invasive ~ time.since.planting))  # P = 0.23
 ```
 
-```{r}
-# mulch
-mulch <- c(rep("None", 3), rep("Low", 6), rep("Medium", 7), rep("High", 4))
-adonis( sbs ~ mulch, method = "bray", permutations = 999)
-
-# didn't do litter- realized that only two sites had any litter at all. Explains why the heat map looks so homogenous! 
-# also neither of the PERMANOVAs were significant
-
-```
+# dbRDA of site factors and Mantel test 
+# factors need classed as categorical?
 
 ```{r}
 #dbrda plot with site factors
 site.factors <- sbs.factors[ ,2:4]
 sbs.dbrda <- dbrda(sbs.ds ~ ., as.data.frame(site.factors))
 ordiplot(sbs.dbrda)
+png(filename="dbRDA.png")
 
-#changed site.factors to character data... drbda won't run anymmore? sitefactors reads as three vectors, while site.factors reads as 20 rows of three columns
-sitefactors <- as.character(site.factors)
+# changed site.factors to character data... drbda won't run anymmore? sitefactors reads as three vectors, while site.factors reads as 20 rows of three columns
+# is a dbrda possible with categorical data?
+sitefactors <- as.factor(site.factors)
 as.data.frame(sitefactors)
 sbs.dbrda <- dbrda(sbs.ds ~ ., as.data.frame(sitefactors))
 ordiplot(sbs.dbrda)
