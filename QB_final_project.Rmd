@@ -325,7 +325,8 @@ explainvar2.sbs <- round(sbs.pcoa$eig[2] / sum (sbs.pcoa$eig), 3) * 100
 explainvar3.sbs <- round(sbs.pcoa$eig[3] / sum (sbs.pcoa$eig), 3) * 100
 sum.eigsbs <- sum(explainvar1.sbs, explainvar2.sbs, explainvar3.sbs)
 ```
-plot PCoA, color-coding by native status, adding text for indicator species
+
+plot PCoA, color-coding by native status, adding text for richness indicator species
 ```{r}
 # plot
 par(mar = c(4, 4, 1, 1) + 0.1) 
@@ -379,6 +380,68 @@ text(sbs.pcoa$cproj[c(45, 29, 19, 143, 30, 131, 76, 140, 22), 1],
 
 ```
 
+plot PCoA, color-coding by native status, adding text for percent volunteer indicator species
+```{r}
+# plot
+par(mar = c(4, 4, 1, 1) + 0.1) 
+plot(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2],
+     ylim = c(-1.1, 1.9), xlim = c(-2.2, 2),
+     xlab = paste("PCoA 1 (", explainvar1.sbs, "%)", sep = ""),
+     ylab = paste("PCoA 2 (", explainvar2.sbs, "%)", sep = ""),
+     pch = 16, cex = 0.8, type = "n", cex.lab = 0.8, cex.axis = 0.8, axes = FALSE)
+axis(side = 1, labels = T, lwd.ticks = 2, cex.axis = 0.8, las = 1) 
+axis(side = 2, labels = T, lwd.ticks = 2, cex.axis = 0.8, las = 1) 
+abline(h = 0, v = 0, lty = 3)
+box(lwd = 2)
+points(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2], 
+    pch = 19, cex = 1.5, bg = "gray", col = "gray")
+text(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2], cex = 0.6,
+#   labels = rownames(sbs.ns)      # these made the graph very messy (well... even more messy)
+    col = "black")
+
+# add species labels to PCoA (I had to separate them manually, not sure how to do it better)
+sbs.pcoa <- add.spec.scores(sbs.pcoa, sbs.ns, method = "pcoa.scores")
+# native species (IN or US)
+points(sbs.pcoa$cproj[1:84, 1], sbs.pcoa$cproj[1:84, 2], 
+       pch = 21, cex = 0.6, bg = "green3", col = "green4")
+#text(sbs.pcoa$cproj[1:84, 1], sbs.pcoa$cproj[1:84, 2], cex = 0.4,
+#     labels = row.names(sbs.pcoa$cproj[1:84, ]), 
+#     col = "darkgreen")
+# exotic species
+points(sbs.pcoa$cproj[85:120, 1], sbs.pcoa$cproj[85:120, 2], 
+       pch = 21, cex = 0.6, bg = "darkorchid1", col = "darkorchid4")
+#text(sbs.pcoa$cproj[85:120, 1], sbs.pcoa$cproj[85:120, 2], cex = 0.4,
+#     labels = row.names(sbs.pcoa$cproj[85:120, ]), 
+#     col = "purple")
+# invasive species
+points(sbs.pcoa$cproj[121:135, 1], sbs.pcoa$cproj[121:135, 2], 
+       pch = 21, cex = 0.6, bg = "red1", col = "red3")
+#text(sbs.pcoa$cproj[121:135, 1], sbs.pcoa$cproj[121:135, 2], cex = 0.4,
+#     labels = row.names(sbs.pcoa$cproj[121:135, ]), 
+#     col = "red")
+# unknown nativity status species
+points(sbs.pcoa$cproj[135:143, 1], sbs.pcoa$cproj[135:143, 2], 
+       pch = 21, cex = 0.6, bg = "deepskyblue", col = "blue3")
+#text(sbs.pcoa$cproj[135:143, 1], sbs.pcoa$cproj[135:143, 2], cex = 0.4,
+#     labels = row.names(sbs.pcoa$cproj[135:143, ]), 
+#     col = "blue")
+
+# indicator species: low percent volunteer sites
+text(sbs.pcoa$cproj[c(12, 42, 22, 40), 1], sbs.pcoa$cproj[c(12, 42, 22, 40), 2], cex = 0.6,
+     labels = row.names(sbs.pcoa$cproj[c(12, 42, 22, 40), ]),
+     col = "darkgreen")
+
+# indicator species: high/low percent volunteer sites
+text(sbs.pcoa$cproj[107, 1], sbs.pcoa$cproj[107, 2], cex = 0.6,
+     labels = row.names(sbs.pcoa$cproj[107, ]),
+     col = "grey")
+
+# indicator species: high percent volunteer sites
+text(sbs.pcoa$cproj[99, 1], sbs.pcoa$cproj[99, 2], cex = 0.6,
+     labels = row.names(sbs.pcoa$cproj[99, ]),
+     col = "darkorange")
+
+```
 
 
 
