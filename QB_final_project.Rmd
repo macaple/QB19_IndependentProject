@@ -38,27 +38,32 @@ crawley.df <- crawley.full[, -c(1:3)]  # Get rid of non-incidence columns
 
 ## SITE-BY-SPECIES MATRICES
 
-sbs: full SbS
+sbs: full SbS; ordered by species name
 ```{r}
-# transpose data to create a site-by-species matrix
-sbs <- t(crawley.full[ , 4:23])
+# transpose data to create a site-by-species matrix, removing non-site columns
+sbs <- t(crawley.full[1:292 , 4:23])
 sbs <- as.data.frame(sbs)
-colnames(sbs) <- crawley.full[ , 1]
+colnames(sbs) <- crawley.full[1:292, 1]
 ```
 
-sbs.ns: SbS w/o species that occur in 0 or 1 sites; ordered by native status
+sbs.ns: SbS w/o species that occur in 0 or 1 sites; ordered by native status then species name
 ```{r}
 # sort by nativity status
 cf.summed <- crawley.full[order(crawley.full$Nativity.Code), ]
 # add rowsums column
 cf.summed$sums <- rowSums(cf.summed[ , 4:23])
 # filter to remove species found in 0 or 1 site
-cf.ns <- cf.summed[which(cf.summed$sums != 0 & cf.summed$sums != 1), ]
+cf.ns <- cf.summed[which(cf.summed$sums > 1), ]
 
 # transpose data, add species names as column names
 sbs.ns <- t(cf.ns[ , 4:23])
 sbs.ns <- as.data.frame(sbs.ns)
 colnames(sbs.ns) <- cf.ns[ , 1]
+```
+
+sbs.factors: SbS plus environmental factors
+```{r}
+sbs.factors <- read.csv("sbs_factors.csv", header = TRUE)
 ```
 
 
@@ -172,7 +177,7 @@ plot(planted.SR, volunteer.SR, ylim = c(0, 80), xlim = c(0, 30),
 
 Percent Invasive vs. Time Since Planting
 ```{r}
-crawley.full.1
+crawley.full.1 <- crawley.full
 time.since.planting <- crawley.site.factors$Years.between.planting.and.census  # this is an integer, for now
 
 crawley.full.1 %>%
@@ -197,19 +202,6 @@ summary(lm(percent.invasive ~ time.since.planting))  # P = 0.23
 
 ## BETA DIVERSITY
 
-Read in data, create SbS matrix
-```{r}
-# loading transposed site by species matrix with nativity/planting codes removed
-sbs.factors <- read.csv("sbs_factors.csv", header = TRUE)
-sbs <- sbs.factors[ , -c(1:4)]
-
-## this was me trying to transpose the matrix, set the first row as column names and then giving up because the data was no longer considered numeric?
-## i'm really just keeping this in the hopes that one day i'll be able to figure it out, we don't need it, feel free to delete
-#sbs <- crawley.full[-c(293:300) ,-c(2, 3, 24, 25)]
-#sbs <- t(sbs)
-#colnames(sbs) <- sbs[1, ]
-#sbs <- sbs[-1, -c(293:300)]
-```
 
 Create distance matrices
 ```{r}
@@ -248,39 +240,7 @@ levelplot(as.matrix(wsbs.ds), aspect = "iso", col.regions = magma,
 ## PERMANOVA 
 
 
-Using site types and locations 
-```{r}
-sbs.ds <- vegdist(sbs, method = "bray", binary = TRUE) 
-sbs.pcoa <- cmdscale(sbs.ds, eig = TRUE, k = 3)
-explainvar1.sbs <- round(sbs.pcoa$eig[1] / sum (sbs.pcoa$eig), 3) * 100
-explainvar2.sbs <- round(sbs.pcoa$eig[2] / sum (sbs.pcoa$eig), 3) * 100
-explainvar3.sbs <- round(sbs.pcoa$eig[3] / sum (sbs.pcoa$eig), 3) * 100
-sum.eigsbs <- sum(explainvar1.sbs, explainvar2.sbs, explainvar3.sbs)
-sum.eigsbs
-```
-
-```{r}
-par(mar = c(4, 4, 1, 1) + 0.1) 
-plot(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2],
-     ylim = c(-1.2, 2), xlim = c(-2.5, 2.5),
-     xlab = paste("PCoA 1 (", explainvar1.sbs, "%)", sep = ""),
-     ylab = paste("PCoA 2 (", explainvar2.sbs, "%)", sep = ""),
-     pch = 16, cex = 0.8, type = "n", cex.lab = 0.8, cex.axis = 0.8, axes = FALSE)
-axis(side = 1, labels = T, lwd.ticks = 2, cex.axis = 0.8, las = 1) 
-axis(side = 2, labels = T, lwd.ticks = 2, cex.axis = 0.8, las = 1) 
-abline(h = 0, v = 0, lty = 3)
-box(lwd = 2)
-points(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2], 
-    pch = 19, cex = 2, bg = "gray", col = "gray")
-text(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2], cex = 0.8,
-    labels = rownames(sbs))
-
-# add species labels to PCoA
-sbs.pcoa <- add.spec.scores(sbs.pcoa, sbs, method = "pcoa.scores")
-text(sbs.pcoa$cproj[ , 1], sbs.pcoa$cproj[ , 2], cex = 0.5,
-     labels = row.names(sbs.pcoa$cproj), col = "blue")
-```
-
+Using site types and locations
 ```{r}
 # site type (i.e. school, residential, etc.)
 site.type <- c(rep("Business", 1), rep ("Residential", 1), rep("School", 1), rep("Residential", 1), rep("Business", 1), rep("Other", 1), rep ("Business", 1), rep("Other", 2), rep("Residential", 1), rep("School", 2), rep ("Business", 1), rep("School", 1), rep("Residential", 2), rep("School", 1), rep("Other", 1), rep("Business", 1), rep("Residential", 1))
@@ -307,6 +267,40 @@ adonis( sbs ~ mulch, method = "bray", permutations = 999)
 
 ## ORDINATION
 
+
+PCoA, full SbS
+```{r}
+sbs.ds <- vegdist(sbs, method = "bray", binary = TRUE) 
+sbs.pcoa <- cmdscale(sbs.ds, eig = TRUE, k = 3)
+explainvar1.sbs <- round(sbs.pcoa$eig[1] / sum (sbs.pcoa$eig), 3) * 100
+explainvar2.sbs <- round(sbs.pcoa$eig[2] / sum (sbs.pcoa$eig), 3) * 100
+explainvar3.sbs <- round(sbs.pcoa$eig[3] / sum (sbs.pcoa$eig), 3) * 100
+sum.eigsbs <- sum(explainvar1.sbs, explainvar2.sbs, explainvar3.sbs)
+sum.eigsbs
+```
+plot full PCoA
+```{r}
+par(mar = c(4, 4, 1, 1) + 0.1) 
+plot(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2],
+     ylim = c(-1.2, 2), xlim = c(-2.5, 2.5),
+     xlab = paste("PCoA 1 (", explainvar1.sbs, "%)", sep = ""),
+     ylab = paste("PCoA 2 (", explainvar2.sbs, "%)", sep = ""),
+     pch = 16, cex = 0.8, type = "n", cex.lab = 0.8, cex.axis = 0.8, axes = FALSE)
+axis(side = 1, labels = T, lwd.ticks = 2, cex.axis = 0.8, las = 1) 
+axis(side = 2, labels = T, lwd.ticks = 2, cex.axis = 0.8, las = 1) 
+abline(h = 0, v = 0, lty = 3)
+box(lwd = 2)
+points(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2], 
+    pch = 19, cex = 2, bg = "gray", col = "gray")
+text(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2], cex = 0.8,
+    labels = rownames(sbs))
+
+# add species labels to PCoA
+sbs.pcoa <- add.spec.scores(sbs.pcoa, sbs, method = "pcoa.scores")
+text(sbs.pcoa$cproj[ , 1], sbs.pcoa$cproj[ , 2], cex = 0.5,
+     labels = row.names(sbs.pcoa$cproj), col = "blue")
+```
+
 dbRDA
 ```{r}
 #dbrda plot with site factors
@@ -322,10 +316,7 @@ sitefact.ds <- vegdist(site.factors, method = "euclidean")
 mantel(sbs.ds,sitefact.ds)
 ```
 
-
-# PCoA
-
-not including species in 1/0 sites
+PCoA, not including species in 1/0 sites
 ```{r}
 sbs.ds <- vegdist(sbs.ns, method = "bray", binary = TRUE) 
 sbs.pcoa <- cmdscale(sbs.ds, eig = TRUE, k = 3)
@@ -335,7 +326,7 @@ explainvar3.sbs <- round(sbs.pcoa$eig[3] / sum (sbs.pcoa$eig), 3) * 100
 sum.eigsbs <- sum(explainvar1.sbs, explainvar2.sbs, explainvar3.sbs)
 ```
 
-plot, color-coding by native status
+plot PCoA, color-coding by native status, adding text for richness indicator species
 ```{r}
 # plot
 par(mar = c(4, 4, 1, 1) + 0.1) 
@@ -381,17 +372,76 @@ points(sbs.pcoa$cproj[135:143, 1], sbs.pcoa$cproj[135:143, 2],
 #     labels = row.names(sbs.pcoa$cproj[135:143, ]), 
 #     col = "blue")
 
-# indicator species: medium richness sites
-text(sbs.pcoa$cproj[c(66, 15), 1], sbs.pcoa$cproj[c(66, 15), 2], cex = 0.7,
-     labels = row.names(sbs.pcoa$cproj[c(66, 15), ]),
-     col = "orange")
-# indicator species: medium/high richness sites
-text(sbs.pcoa$cproj[c(118, 19, 143), 1], sbs.pcoa$cproj[c(118, 19, 143), 2], cex = 0.7,
-     labels = row.names(sbs.pcoa$cproj[c(118, 19, 143), ]),
-     col = "red")
+# indicator species: high richness sites
+text(sbs.pcoa$cproj[c(45, 29, 19, 143, 30, 131, 76, 140, 22), 1], 
+     sbs.pcoa$cproj[c(45, 29, 19, 143, 30, 131, 76, 140, 22), 2], cex = 0.6,
+     labels = row.names(sbs.pcoa$cproj[c(45, 29, 19, 143, 30, 131, 76, 140, 22), ]),
+     col = "darkorange")
 
 ```
 
+plot PCoA, color-coding by native status, adding text for percent volunteer indicator species
+```{r}
+# plot
+par(mar = c(4, 4, 1, 1) + 0.1) 
+plot(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2],
+     ylim = c(-1.1, 1.9), xlim = c(-2.2, 2),
+     xlab = paste("PCoA 1 (", explainvar1.sbs, "%)", sep = ""),
+     ylab = paste("PCoA 2 (", explainvar2.sbs, "%)", sep = ""),
+     pch = 16, cex = 0.8, type = "n", cex.lab = 0.8, cex.axis = 0.8, axes = FALSE)
+axis(side = 1, labels = T, lwd.ticks = 2, cex.axis = 0.8, las = 1) 
+axis(side = 2, labels = T, lwd.ticks = 2, cex.axis = 0.8, las = 1) 
+abline(h = 0, v = 0, lty = 3)
+box(lwd = 2)
+points(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2], 
+    pch = 19, cex = 1.5, bg = "gray", col = "gray")
+text(sbs.pcoa$points[, 1], sbs.pcoa$points[, 2], cex = 0.6,
+#   labels = rownames(sbs.ns)      # these made the graph very messy (well... even more messy)
+    col = "black")
+
+# add species labels to PCoA (I had to separate them manually, not sure how to do it better)
+sbs.pcoa <- add.spec.scores(sbs.pcoa, sbs.ns, method = "pcoa.scores")
+# native species (IN or US)
+points(sbs.pcoa$cproj[1:84, 1], sbs.pcoa$cproj[1:84, 2], 
+       pch = 21, cex = 0.6, bg = "green3", col = "green4")
+#text(sbs.pcoa$cproj[1:84, 1], sbs.pcoa$cproj[1:84, 2], cex = 0.4,
+#     labels = row.names(sbs.pcoa$cproj[1:84, ]), 
+#     col = "darkgreen")
+# exotic species
+points(sbs.pcoa$cproj[85:120, 1], sbs.pcoa$cproj[85:120, 2], 
+       pch = 21, cex = 0.6, bg = "darkorchid1", col = "darkorchid4")
+#text(sbs.pcoa$cproj[85:120, 1], sbs.pcoa$cproj[85:120, 2], cex = 0.4,
+#     labels = row.names(sbs.pcoa$cproj[85:120, ]), 
+#     col = "purple")
+# invasive species
+points(sbs.pcoa$cproj[121:135, 1], sbs.pcoa$cproj[121:135, 2], 
+       pch = 21, cex = 0.6, bg = "red1", col = "red3")
+#text(sbs.pcoa$cproj[121:135, 1], sbs.pcoa$cproj[121:135, 2], cex = 0.4,
+#     labels = row.names(sbs.pcoa$cproj[121:135, ]), 
+#     col = "red")
+# unknown nativity status species
+points(sbs.pcoa$cproj[135:143, 1], sbs.pcoa$cproj[135:143, 2], 
+       pch = 21, cex = 0.6, bg = "deepskyblue", col = "blue3")
+#text(sbs.pcoa$cproj[135:143, 1], sbs.pcoa$cproj[135:143, 2], cex = 0.4,
+#     labels = row.names(sbs.pcoa$cproj[135:143, ]), 
+#     col = "blue")
+
+# indicator species: low percent volunteer sites
+text(sbs.pcoa$cproj[c(12, 42, 22, 40), 1], sbs.pcoa$cproj[c(12, 42, 22, 40), 2], cex = 0.6,
+     labels = row.names(sbs.pcoa$cproj[c(12, 42, 22, 40), ]),
+     col = "darkgreen")
+
+# indicator species: high/low percent volunteer sites
+text(sbs.pcoa$cproj[107, 1], sbs.pcoa$cproj[107, 2], cex = 0.6,
+     labels = row.names(sbs.pcoa$cproj[107, ]),
+     col = "grey")
+
+# indicator species: high percent volunteer sites
+text(sbs.pcoa$cproj[99, 1], sbs.pcoa$cproj[99, 2], cex = 0.6,
+     labels = row.names(sbs.pcoa$cproj[99, ]),
+     col = "darkorange")
+
+```
 
 
 
@@ -403,6 +453,9 @@ Indicator species:site richness
 
 # create "factors" vector
 richness <- rowSums(sbs)
+
+min(richness) + ((max(richness) - min(richness)) / 3)
+max(richness) - ((max(richness) - min(richness)) / 3)
 
 levels <- function(x){
   if(x <= 45){
@@ -433,23 +486,36 @@ summary(phi)
 Indicator species: richness (no absent/single species)
 ```{r}
 # create "factors" vector
-richness <- rowSums(sbs.ns)
+richness.ns <- rowSums(sbs.ns)
+
+min(richness.ns) + ((max(richness.ns) - min(richness.ns)) / 3)
+max(richness.ns) - ((max(richness.ns) - min(richness.ns)) / 3)
+
+levels.ns <- function(x){
+  if(x <= 37){
+    return("L")
+  } else if(x > 37 & x <= 58){
+    return("M")
+  } else{
+    return("H")
+  }
+}
+
 # make qualitative
-richness.level <- sapply(richness, levels)
+richness.level.ns <- sapply(richness.ns, levels.ns)
 
 # run PERMANOVA with adonis function
-adonis(sbs.ns ~ richness, method = "bray", permutations = 999)
+adonis(sbs.ns ~ richness.ns, method = "bray", permutations = 999)
 
 # identify indicator species
-indval <- multipatt(sbs.ns, cluster = richness.level, func = "IndVal.g", control = how(nperm = 999))
+indval <- multipatt(sbs.ns, cluster = richness.level.ns, func = "IndVal.g", control = how(nperm = 999))
 summary(indval)
 
 # calculate phi coefficient of association to examine habitat preference
 sbs.rel <- decostand(sbs.ns, method = "total")
-phi <- multipatt(sbs.ns, cluster = richness.level, func = "r.g", control = how(nperm = 999))
+phi <- multipatt(sbs.ns, cluster = richness.level.ns, func = "r.g", control = how(nperm = 999))
 summary(phi)
 ```
-> The indicator species analysis gives pretty different results this way-- maybe we should talk about this on Monday
 
 Indicator species: percent volunteer
 ```{r}
@@ -495,7 +561,47 @@ summary(phi)
 
 Indicator species: percent volunteer (no single/absent species)
 ```{r}
-# Mackenzie will work on this later
+# Change volunteer species to be coded as "0"
+cf.1 <- crawley.full
+cf.1$Planted.or.Volunteer[cf.1$Planted.or.Volunteer == "2"] <- 0
+# add sum column
+cf.1$sums <- rowSums(cf.1[ , 4:23])
+# filter to remove species found in 0 or 1 site
+cf.1.ns <- cf.1[which(cf.1$sums > 1), ]
+
+# Volunteer species only, remove non-incidence columns
+cf.1.ns.vol <- cf.1.ns[cf.1.ns$Planted.or.Volunteer == "0", 4:23]
+
+percent.volunteer.ns <- colSums(cf.1.ns.vol) / rowSums(sbs.ns)
+
+#determine range
+min(percent.volunteer.ns) + ((max(percent.volunteer.ns) - min(percent.volunteer.ns)) / 3)
+max(percent.volunteer.ns) - ((max(percent.volunteer.ns) - min(percent.volunteer.ns)) / 3)
+
+levels.vol.ns <- function(x){
+  if(x <= 0.7726){
+    return("L")
+  } else if(x > 0.7726 & x <= 0.8577){
+    return("M")
+  } else{
+    return("H")
+  }
+}
+
+# make qualitative
+volunteer.level.ns <- sapply(percent.volunteer.ns, levels.vol.ns)
+
+# run PERMANOVA with adonis function
+adonis(sbs.ns ~ percent.volunteer.ns, method = "bray", permutations = 999)
+
+# identify indicator species
+indval <- multipatt(sbs.ns, cluster = volunteer.level.ns, func = "IndVal.g", control = how(nperm = 999))
+summary(indval)
+
+# calculate phi coefficient of association to examine habitat preference
+sbs.rel <- decostand(sbs.ns, method = "total")
+phi <- multipatt(sbs.ns, cluster = volunteer.level.ns, func = "r.g", control = how(nperm = 999))
+summary(phi)
 ```
 
 
