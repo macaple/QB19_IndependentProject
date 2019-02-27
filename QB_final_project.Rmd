@@ -353,15 +353,14 @@ png(filename="dbRDA.png")
 
 # changed site.factors to character data... drbda won't run anymmore? sitefactors reads as three vectors, while site.factors reads as 20 rows of three columns
 # is a dbrda possible with categorical data?
-sitefactors <- as.factor(site.factors)
-as.data.frame(sitefactors)
-sbs.dbrda <- dbrda(sbs.ds ~ ., as.data.frame(sitefactors))
-ordiplot(sbs.dbrda)
+# sitefactors <- as.factor(site.factors)
+# as.data.frame(sitefactors)
+# sbs.dbrda <- dbrda(sbs.ds ~ ., as.data.frame(sitefactors))
+# ordiplot(sbs.dbrda)
 
 permutest(sbs.dbrda, permutations = 999)
 envfit(sbs.dbrda, site.factors, perm = 999)
 
-percent.volunteer <- colSums(crawley.volunteer.sbs) / colSums(crawley.full[, -c(1:3)])
 
 #mantel test? not sure if done right.
 sitefact.ds <- vegdist(site.factors, method = "euclidean")
